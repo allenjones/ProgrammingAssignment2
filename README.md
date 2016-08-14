@@ -2,6 +2,7 @@
 To test the solution, enter the following from the console:
 
 source("test_routine.R")
+
 testInverse()
 
 ### Introduction
