@@ -1,5 +1,5 @@
 ## This routine tests the cacheSolve() routine by performing the following test 
-## for 2x2 matrices, 3x3 matrices, 4x4 matrices, and 5x5 matrices;
+## for 2000x2000 matrices, 2001x2001 matrices, 2002x2002 matrices, and 2003x2003 matrices;
 ## 
 ## 1) Verifies that the inverse matrix that is returned the first time that the 
 ##    cacheSolve routine is called is actually correct.
@@ -14,41 +14,56 @@ source("cachematrix.R")
 options(digits.secs=6)
 
 testInverse <- function() {
-    for (dimension in 2:5) {
+    for (dimension in 2000:2003) {
+        message("***************************************")
+        message(paste("Running test with a dimension of", dimension))
+        message("***************************************")
         
-        print(paste("Running test with a dimension of", dimension))
+        # Create a dimension x dimension matrix containing random data.
+        matrixA <- matrix(runif(dimension*dimension, max = 100), dimension, dimension)
         
-        vectorA <- runif(dimension, max = 100)
+        cache1 <- makeCacheMatrix(matrixA)
         
-        cache1 <- makeVector(vectorA)
-        
+        # The first time, the inverse will not already be cached.
         beginTime <- Sys.time()
-        value1 <- cachemean(cache1)
+        inverse1 <- cacheSolve(cache1)
         endTime <- Sys.time()
-        print(paste("Elapsed time:", endTime - beginTime, "seconds."))
+        message("")
+        message(paste("Without caching, the inverse matrix was calculated in", endTime - beginTime, "seconds."))
         
-        beginTime <- Sys.time()
-        value2 <- cachemean(cache1)
-        endTime <- Sys.time()
-        print(paste("Elapsed time:", endTime - beginTime, "seconds."))
+        ## Test to make sure that the value that we got really was the inverse.
+        message("")
+        message("Multiplying the matrix by its calculated inverse to verify that we get the identity matrix.")
+        identityMatrix <- round(matrixA %*% inverse1, 6)
         
-        if (value1 != value2) {
-            return(FALSE)
+        if (identical(identityMatrix, diag(dimension))) {
+            message("Verified that the inverse matrix was calculated correctly.")
         }
-        
-        vectorA <- runif(dimension, max = 100)
+        else {
+            message("The calculated value of the inverse matrix is incorrect.")
+            return (FALSE)
+        }
 
-        cache1 <- makeVector(vectorA)
-        
+        # The second time, the inverse should already be cached.
+        message("")
+        message("The second time, the inverse should already be cached.")
         beginTime <- Sys.time()
-        value3 <- cachemean(cache1)
+        inverse2 <- cacheSolve(cache1)
         endTime <- Sys.time()
-        print(paste("Elapsed time:", endTime - beginTime, "seconds."))
+        message(paste("With caching, the inverse matrix was calculated in", endTime - beginTime, "seconds."))
         
-        if (value1 == value3) {
+        if (!identical(inverse1, inverse2)) {
             return(FALSE)
         }
-        print('')
+        
+        # Create a new matrix to verify that the old cached value is not used.
+        matrixA <- matrix(runif(dimension*dimension, max = 100), dimension, dimension)
+        cache1 <- makeCacheMatrix(matrixA)
+        inverse3 <- cacheSolve(cache1)
+        if (identical(inverse1, inverse3)) {
+            return(FALSE)
+        }
+        message('')
     }
     return(TRUE)
 }

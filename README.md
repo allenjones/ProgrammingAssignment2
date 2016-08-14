@@ -1,3 +1,9 @@
+### Test Instructions
+To test the solution, enter the following from the console:
+
+source("test_routine.R")
+testInverse()
+
 ### Introduction
 
 This second programming assignment will require you to write an R
